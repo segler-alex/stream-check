@@ -1,7 +1,6 @@
 'use strict';
 
 const express = require('express');
-const xml = require('xml');
 const request = require('request-promise-native');
 const httpDetail = require('../http-detail.js');
 const swarmLib = require('../swarm-lib.js')();
@@ -11,6 +10,10 @@ var router = express.Router();
 var localIp = null;
 var external = null;
 var serviceName = null;
+
+function log(msg){
+    console.log(msg);
+}
 
 router.post('/checkall', function(req, res) {
     var url = req.body.url;
@@ -45,18 +48,18 @@ router.post('/checkall', function(req, res) {
 
 router.post('/check', function(req, res) {
     var url = req.body.url;
-    console.log('check:' + url);
+    log('check:' + url);
     if (!url) {
-        console.log('check empty url');
+        log('check empty url');
         res.status(400).json({
             ok: false
         });
     } else {
-        console.log('check url ok:' + url);
+        log('check url ok:' + url);
         httpDetail.getHeaderRecursive(url, {
             debug: true
         }).then((data) => {
-            console.log('check url finished:' + url);
+            log('check url finished:' + url);
             res.json({
                 ok: true,
                 self: localIp,
@@ -65,7 +68,7 @@ router.post('/check', function(req, res) {
                 result: data
             });
         }).catch((err) => {
-            console.error(err);
+            log(err);
             res.status(403).json({
                 ok: false
             });
@@ -82,7 +85,7 @@ module.exports = function(_servicename) {
     }).then((result) => {
         localIp = result.ownInternalIP;
     }).catch(function(err) {
-        console.error('11 could not cache local ip ' + err);
+        log('11 could not cache local ip ' + err);
     });
 
     return router;
