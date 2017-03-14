@@ -5,5 +5,5 @@ services:
     environment:
       SERVICE: api
     ports:
-      - "3000:3000"
+      - "3000:80"
     image: "segleralex/stream-check:latest"

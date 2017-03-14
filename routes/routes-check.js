@@ -23,7 +23,7 @@ router.post('/checkall', function(req, res) {
         var list = [];
         for (var i = 0; i < result.allInternalIPs.length; i++) {
             list.push(request.post({
-                url: 'http://' + result.allInternalIPs[i] + ':3000/check',
+                url: 'http://' + result.allInternalIPs[i] + '/check',
                 json: {
                     url: url
                 }
