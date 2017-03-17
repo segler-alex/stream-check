@@ -3,6 +3,8 @@
 const colors = require('colors');
 const util = require('util');
 
+var level = process.env.LOG_LEVEL || 3;
+
 function decodeError(obj) {
     if (obj) {
         if (typeof obj === 'object') {
@@ -12,33 +14,43 @@ function decodeError(obj) {
     return '' + obj;
 }
 
-function getTimeString(){
+function getTimeString() {
     return (new Date()).toISOString().white.italic;
 }
 
 function trace(msg) {
-    msg = decodeError(msg);
-    console.log(getTimeString() + ' ' + msg.grey);
+    if (level > 4) {
+        msg = decodeError(msg);
+        console.log(getTimeString() + ' ' + msg.grey);
+    }
 }
 
 function debug(msg) {
-    msg = decodeError(msg);
-    console.log(getTimeString() + ' ' + msg.white);
+    if (level > 3) {
+        msg = decodeError(msg);
+        console.log(getTimeString() + ' ' + msg.white);
+    }
 }
 
 function info(msg) {
-    msg = decodeError(msg);
-    console.log(getTimeString() + ' ' + msg.green);
+    if (level > 2) {
+        msg = decodeError(msg);
+        console.log(getTimeString() + ' ' + msg.green);
+    }
 }
 
 function warn(msg) {
-    msg = decodeError(msg);
-    console.log(getTimeString() + ' ' + msg.yellow);
+    if (level > 1) {
+        msg = decodeError(msg);
+        console.log(getTimeString() + ' ' + msg.yellow);
+    }
 }
 
 function error(msg) {
-    msg = decodeError(msg);
-    console.log(getTimeString() + ' ' + msg.red);
+    if (level > 0) {
+        msg = decodeError(msg);
+        console.log(getTimeString() + ' ' + msg.red);
+    }
 }
 
 module.exports = {

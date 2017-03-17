@@ -27,7 +27,7 @@ app.use(routes_check);
 swarmLib.getExternalInfos().then(function(_external) {
     external = _external;
 }).catch(function(err) {
-    console.error('could not cache local ip ' + err);
+    log.error('could not cache local ip ' + err);
 });
 
 app.get('/', function(req, res) {
@@ -46,5 +46,5 @@ app.get('/', function(req, res) {
 });
 
 app.listen(80, function() {
-    console.log('Example app listening on port 80!');
+    log.info('stream-check listening on port 80!');
 });

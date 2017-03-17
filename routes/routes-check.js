@@ -12,6 +12,12 @@ var localIp = null;
 var external = null;
 var serviceName = null;
 
+router.post('/status', function(req, res) {
+    res.json({
+        ok: true
+    });
+});
+
 router.post('/checkall', function(req, res) {
     var url = req.body.url;
     var result;
@@ -60,7 +66,7 @@ router.post('/check', function(req, res) {
                 self: localIp,
                 selfExternal: external.ip,
                 country: external.country,
-                result: data
+                streams: data
             });
         }).catch((err) => {
             log.error(err);

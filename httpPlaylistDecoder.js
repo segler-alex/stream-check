@@ -100,6 +100,58 @@ function headercheck(result) {
     return isContentTypePlaylist(contentType);
 }
 
+function decodePlaylist(link, result){
+    log.info('playlist at:'+link);
+    var playlistString = result.content.toString('ascii');
+    log.trace(playlistString);
+
+    var playlist = playlistDecoder.decode(link, playlistString);
+
+    log.warn(playlist);
+
+    return Promise.all(playlist.map((item) => {
+        return decode(item.file);
+    })).then((items)=>{
+        var list = [];
+        for (var i=0;i<items.length;i++){
+            if (Array.isArray(items[i])){
+                items = items.concat(items[i]);
+            }else{
+                list.push(items[i]);
+            }
+        }
+        return list;
+    });
+}
+
+function decodeStream(link, result, codec){
+    log.info('stream at:'+link);
+    var bitrate = parseInt(result.headers['icy-br']) || 0;
+    if (bitrate > 10000){
+        bitrate = bitrate / 1000;
+    }
+    var genre = result.headers['icy-genre'];
+    var genres = [];
+    if (genre){
+        if (genre.indexOf(',') >= 0){
+            genres = genre.split(',').map((item)=>{return item.trim();});
+        }else{
+            genres = genre.split(' ').map((item)=>{return item.trim();});
+        }
+    }
+    return {
+        url: link,
+        name: result.headers['icy-name'],
+        genres: genres,
+        homepage: result.headers['icy-url'],
+        bitrate: bitrate,
+        sampling: parseInt(result.headers['icy-sr'] || '0') || 0,
+        description: result.headers['icy-description'],
+        audio: result.headers['ice-audio-info'],
+        codec: codec
+    };
+}
+
 function decode(link) {
     return httpDetail.getHeader(link, {
         headercheck: headercheck,
@@ -109,63 +161,24 @@ function decode(link) {
         if (result.headers.location) {
             // redirect
             log.info('redirect to:'+result.headers.location);
-            return httpDetail.getHeader(result.headers.location);
+            return decode(result.headers.location);
         } else if (headercheck(result)) {
-            // playlist
-            log.info('playlist at:'+link);
-            var playlistString = result.content.toString('ascii');
-            log.trace(playlistString);
-
-            var playlist = playlistDecoder.decode(link, playlistString);
-
-            log.warn(playlist);
-
-            return Promise.all(playlist.map((item) => {
-                return decode(item.file);
-            })).then((items)=>{
-                var list = [];
-                for (var i=0;i<items.length;i++){
-                    if (Array.isArray(items[i])){
-                        items = items.concat(items[i]);
-                    }else{
-                        list.push(items[i]);
-                    }
-                }
-                return list;
-            });
+            return decodePlaylist(link, result);
         } else {
             var codec = getStreamType(result.headers['content-type']);
             if (codec) {
-                // stream
-                log.info('stream at:'+link);
-                var bitrate = parseInt(result.headers['icy-br']) || 0;
-                if (bitrate > 10000){
-                    bitrate = bitrate / 1000;
-                }
-                var genre = result.headers['icy-genre'];
-                var genres = [];
-                if (genre){
-                    if (genre.indexOf(',') >= 0){
-                        genres = genre.split(',').map((item)=>{return item.trim();});
-                    }else{
-                        genres = genre.split(' ').map((item)=>{return item.trim();});
-                    }
-                }
-                return {
-                    url: link,
-                    name: result.headers['icy-name'],
-                    genres: genres,
-                    homepage: result.headers['icy-url'],
-                    bitrate: bitrate,
-                    sampling: parseInt(result.headers['icy-sr'] || '0') || 0,
-                    description: result.headers['icy-description'],
-                    audio: result.headers['ice-audio-info'],
-                    codec: codec
-                };
+                return decodeStream(link, result, codec);
             } else {
                 // something we don't know
                 log.warn('unknown at:'+link);
+                return [];
             }
+        }
+    }).then((result) => {
+        if (Array.isArray(result)){
+            return result;
+        }else{
+            return [result];
         }
     }).catch((err) => {
         log.error(err);
