@@ -13,13 +13,18 @@ function makeLinksAbsolute(link, content){
     var baseServer = o.protocol + '//' + o.host;
     var basePath = baseServer + path.dirname(o.pathname);
 
+    content = content.filter((item=>{
+        return item !== undefined;
+    }));
+    
     for (var i=0;i<content.length;i++){
-        var file = content[i].file.toLowerCase();
+        var file = content[i].file || '';
+        file = file.toLowerCase();
         if (file.indexOf('http://') < 0 && file.indexOf('https://') < 0){
             if (content[i].file[0] === '/'){
-                content[i].file = baseServer + o.content[i].file;
-            }else if (content[i].file[0] === ''){
-                content[i].file = basePath + '/' + o.content[i].file;
+                content[i].file = baseServer + content[i].file;
+            } else {
+                content[i].file = basePath + '/' + content[i].file;
             }
         }
     }
