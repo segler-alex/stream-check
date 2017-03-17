@@ -159,7 +159,8 @@ function decode(link) {
                     bitrate: bitrate,
                     sampling: parseInt(result.headers['icy-sr'] || '0') || 0,
                     description: result.headers['icy-description'],
-                    audio: result.headers['ice-audio-info']
+                    audio: result.headers['ice-audio-info'],
+                    codec: codec
                 };
             } else {
                 // something we don't know
