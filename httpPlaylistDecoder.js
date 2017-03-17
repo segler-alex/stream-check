@@ -100,7 +100,6 @@ function headercheck(result) {
     if (contentType) {
         return isContentTypePlaylist(contentType);
     } else {
-        log.error('no content type:' + JSON.stringify(result, null, ' '));
         return false;
     }
 }
@@ -112,7 +111,7 @@ function decodePlaylist(link, result) {
 
     var playlist = playlistDecoder.decode(link, playlistString);
 
-    log.warn(playlist);
+    log.trace(playlist);
 
     return Promise.all(playlist.map((item) => {
         return decode(item.file);
