@@ -97,11 +97,16 @@ function getStreamType(contentType) {
 
 function headercheck(result) {
     var contentType = result.headers['content-type'];
-    return isContentTypePlaylist(contentType);
+    if (contentType) {
+        return isContentTypePlaylist(contentType);
+    } else {
+        log.error('no content type:' + JSON.stringify(result, null, ' '));
+        return false;
+    }
 }
 
-function decodePlaylist(link, result){
-    log.info('playlist at:'+link);
+function decodePlaylist(link, result) {
+    log.info('playlist at:' + link);
     var playlistString = result.content.toString('ascii');
     log.trace(playlistString);
 
@@ -111,12 +116,12 @@ function decodePlaylist(link, result){
 
     return Promise.all(playlist.map((item) => {
         return decode(item.file);
-    })).then((items)=>{
+    })).then((items) => {
         var list = [];
-        for (var i=0;i<items.length;i++){
-            if (Array.isArray(items[i])){
+        for (var i = 0; i < items.length; i++) {
+            if (Array.isArray(items[i])) {
                 items = items.concat(items[i]);
-            }else{
+            } else {
                 list.push(items[i]);
             }
         }
@@ -124,19 +129,23 @@ function decodePlaylist(link, result){
     });
 }
 
-function decodeStream(link, result, codec){
-    log.info('stream at:'+link);
+function decodeStream(link, result, codec) {
+    log.info('stream at:' + link);
     var bitrate = parseInt(result.headers['icy-br']) || 0;
-    if (bitrate > 10000){
+    if (bitrate > 10000) {
         bitrate = bitrate / 1000;
     }
     var genre = result.headers['icy-genre'];
     var genres = [];
-    if (genre){
-        if (genre.indexOf(',') >= 0){
-            genres = genre.split(',').map((item)=>{return item.trim();});
-        }else{
-            genres = genre.split(' ').map((item)=>{return item.trim();});
+    if (genre) {
+        if (genre.indexOf(',') >= 0) {
+            genres = genre.split(',').map((item) => {
+                return item.trim();
+            });
+        } else {
+            genres = genre.split(' ').map((item) => {
+                return item.trim();
+            });
         }
     }
     return {
@@ -160,7 +169,7 @@ function decode(link) {
         log.debug(result);
         if (result.headers.location) {
             // redirect
-            log.info('redirect to:'+result.headers.location);
+            log.info('redirect to:' + result.headers.location);
             return decode(result.headers.location);
         } else if (headercheck(result)) {
             return decodePlaylist(link, result);
@@ -170,14 +179,14 @@ function decode(link) {
                 return decodeStream(link, result, codec);
             } else {
                 // something we don't know
-                log.warn('unknown at:'+link);
+                log.warn('unknown at:' + link);
                 return [];
             }
         }
     }).then((result) => {
-        if (Array.isArray(result)){
+        if (Array.isArray(result)) {
             return result;
-        }else{
+        } else {
             return [result];
         }
     }).catch((err) => {
