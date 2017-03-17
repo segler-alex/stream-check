@@ -69,7 +69,7 @@ function getHeader(u, _options) {
                 log.debug('Connected to '+parsed.hostname+':'+port);
                 client.setNoDelay(true);
                 var requestStr = 'GET ' + parsed.path + ' HTTP/1.1\r\n' +
-                    'Host: ' + parsed.hostname + '\r\n' +
+                    'Host: ' + parsed.host + '\r\n' +
                     'User-Agent: RadioBrowser/1.0\r\n' +
                     'Connection: close\r\n' +
                     'Accept: */*\r\n\r\n';

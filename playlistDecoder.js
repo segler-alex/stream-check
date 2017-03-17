@@ -29,9 +29,9 @@ function makeLinksAbsolute(link, content){
 function decode(link, content) {
     var playlist = null;
     if (content.toLowerCase().indexOf('[playlist]') >= 0) {
-        return PLS.parse(content);
+        playlist = PLS.parse(content);
     } else if (content.toLowerCase().indexOf('<asx') >= 0) {
-        return ASX.parse(content);
+        playlist = ASX.parse(content);
     } else {
         playlist = M3U.parse(content);
     }
