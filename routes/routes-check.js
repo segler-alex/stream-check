@@ -2,18 +2,15 @@
 
 const express = require('express');
 const request = require('request-promise-native');
-const httpDetail = require('../http-detail.js');
+const httpPlaylistDecoder = require('../httpPlaylistDecoder.js');
 const swarmLib = require('../swarm-lib.js')();
+const log = require('../log.js');
 
 var router = express.Router();
 
 var localIp = null;
 var external = null;
 var serviceName = null;
-
-function log(msg){
-    console.log(msg);
-}
 
 router.post('/checkall', function(req, res) {
     var url = req.body.url;
@@ -48,18 +45,16 @@ router.post('/checkall', function(req, res) {
 
 router.post('/check', function(req, res) {
     var url = req.body.url;
-    log('check:' + url);
+    log.debug('check:' + url);
     if (!url) {
-        log('check empty url');
+        log.debug('check empty url');
         res.status(400).json({
             ok: false
         });
     } else {
-        log('check url ok:' + url);
-        httpDetail.getHeaderRecursive(url, {
-            debug: true
-        }).then((data) => {
-            log('check url finished:' + url);
+        log.debug('check url ok:' + url);
+        httpPlaylistDecoder.decode(url).then((data) => {
+            log.debug('check url finished:' + url);
             res.json({
                 ok: true,
                 self: localIp,
@@ -68,7 +63,7 @@ router.post('/check', function(req, res) {
                 result: data
             });
         }).catch((err) => {
-            log(err);
+            log.error(err);
             res.status(403).json({
                 ok: false
             });
@@ -85,7 +80,7 @@ module.exports = function(_servicename) {
     }).then((result) => {
         localIp = result.ownInternalIP;
     }).catch(function(err) {
-        log('11 could not cache local ip ' + err);
+        log.error('11 could not cache local ip ' + err);
     });
 
     return router;

@@ -4,20 +4,21 @@ const os = require('os');
 const express = require('express');
 const swarmLib = require('./swarm-lib.js')();
 const bodyParser = require('body-parser');
+const log = require('./log.js');
 
 var app = express();
 var external = null;
 var SERVICE = process.env.SERVICE;
 
 if (!SERVICE){
-    console.log('SERVICE environment variable is not set!');
+    log.error('SERVICE environment variable is not set!');
     process.exit(1);
 }
 
 var routes_check = require('./routes/routes-check.js')(SERVICE);
 
 app.use(bodyParser.urlencoded({
-  extended: true
+    extended: true
 }));
 app.use(bodyParser.json());
 
