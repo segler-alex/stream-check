@@ -174,7 +174,9 @@ function decode(link) {
         } else if (headercheck(result)) {
             return decodePlaylist(link, result);
         } else {
-            var codec = getStreamType(result.headers['content-type']);
+            var contentType = result.headers['content-type'] || '';
+            contentType = contentType.toLowerCase();
+            var codec = getStreamType(contentType);
             if (codec) {
                 return decodeStream(link, result, codec);
             } else {
