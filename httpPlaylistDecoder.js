@@ -182,8 +182,6 @@ function decode(link) {
         } else {
             return [result];
         }
-    }).catch((err) => {
-        log.error(err);
     });
 }
 
