@@ -25,8 +25,8 @@ function decode(buffer) {
         result.status = firstLine[2];
         result.headers = {};
         result.content = Buffer.allocUnsafe(buffer.length - found - marker.length);
-        log.debug('found marker at:'+found);
-        log.debug('new buffer length:'+result.content.length);
+        log.debug('found marker at:' + found);
+        log.debug('new buffer length:' + result.content.length);
         buffer.copy(result.content, 0, found + marker.length, buffer.length);
         for (var i = 1; i < lines.length; i++) {
             var line = lines[i];
@@ -66,28 +66,35 @@ function getHeader(u, _options) {
                 port = parsed.port || 443;
             }
             var client = connect(port, parsed.hostname, function() {
-                log.debug('Connected to '+parsed.hostname+':'+port);
+                log.debug('Connected to ' + parsed.hostname + ':' + port);
                 client.setNoDelay(true);
                 var requestStr = 'GET ' + parsed.path + ' HTTP/1.1\r\n' +
                     'Host: ' + parsed.host + '\r\n' +
                     'User-Agent: RadioBrowser/1.0\r\n' +
                     'Connection: close\r\n' +
                     'Accept: */*\r\n\r\n';
-                client.write(requestStr,'ascii');
-                // client.write(Buffer.from([13,10,13,10]));
+                client.write(requestStr, 'ascii');
                 log.debug('Sent to server:\n' + requestStr);
             });
             client.on('data', (data) => {
                 log.debug('connection data length:' + data.length);
                 buffer = Buffer.concat([buffer, data]);
-                if (!decoded){
+                if (!decoded) {
                     decoded = decode(buffer);
                     if (decoded) {
+                        if (decoded.headers['content-length']) {
+                            var value = parseInt(decoded.headers['content-length']);
+                            if (value < contentsize){
+                                contentsize = value;
+                                log.debug('Wait for bytes changed to:' + contentsize);
+                            }
+                        }
+
                         if (!checkedWithUser && options.headercheck) {
                             checkedWithUser = true;
                             userWantsData = options.headercheck(decoded);
                         }
-                        if (!userWantsData || decoded.content.length > contentsize) {
+                        if (!userWantsData || decoded.content.length >= contentsize) {
                             client.destroy();
                             if (!resolved) {
                                 resolve(decoded);
@@ -97,12 +104,15 @@ function getHeader(u, _options) {
                     }
                 } else {
                     decoded.content = Buffer.concat([decoded.content, data]);
+                    if (decoded.content.length >= contentsize) {
+                        client.destroy();
+                    }
                 }
             });
             client.on('end', () => {
                 log.debug('connection ended');
                 if (!resolved) {
-                    if (!decoded){
+                    if (!decoded) {
                         decoded = decode(buffer);
                     }
                     if (decoded) {
@@ -118,7 +128,10 @@ function getHeader(u, _options) {
             });
             client.on('error', (err) => {
                 log.error('err:' + err);
-                reject(err);
+                if (!resolved){
+                    reject(err);
+                    resolved = true;
+                }
             });
         } else {
             reject('unknown protocol:' + parsed.protocol);
