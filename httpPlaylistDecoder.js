@@ -42,22 +42,6 @@ function isContentTypePlaylistASX(contentType) {
     return types.indexOf(contentType) >= 0;
 }
 
-// function isContentHLS(content) {
-//     // replace different kinds of newline with the default
-//     content = str_replace(array("\r\n", "\n\r", "\r"), "\n", content);
-//     $lines = explode("\n", content);
-//
-//     foreach($lines as $line) {
-//         if (strrpos($line, "EXT-X-STREAM-INF") !== false) {
-//             return true;
-//         }
-//         if (strrpos($line, "EXT-X-TARGETDURATION") !== false) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
 function isContentTypePlaylist(contentType) {
     if (isContentTypePlaylistM3U(contentType)) {
         return true;
@@ -110,9 +94,17 @@ function decodePlaylist(link, result) {
     log.trace(playlistString);
 
     var playlist = playlistDecoder.decode(link, playlistString);
+    var isHls = playlistDecoder.isContentHLS(playlistString);
 
     log.trace(playlist);
 
+    if (isHls){
+        return {
+            url: link,
+            hls: true,
+            codec: 'UNKNOWN'
+        };
+    }
     return Promise.all(playlist.map((item) => {
         return decode(item.file);
     })).then((items) => {

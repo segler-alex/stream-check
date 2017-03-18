@@ -8,6 +8,16 @@ var M3U = parsers.M3U;
 var PLS = parsers.PLS;
 var ASX = parsers.ASX;
 
+function isContentHLS(content){
+    if (content.indexOf('EXT-X-STREAM-INF') >= 0) {
+        return true;
+    }
+    if (content.indexOf('EXT-X-TARGETDURATION') >= 0) {
+        return true;
+    }
+    return false;
+}
+
 function makeLinksAbsolute(link, content){
     var o = url.parse(link);
     var baseServer = o.protocol + '//' + o.host;
@@ -16,7 +26,7 @@ function makeLinksAbsolute(link, content){
     content = content.filter((item=>{
         return item !== undefined;
     }));
-    
+
     for (var i=0;i<content.length;i++){
         var file = content[i].file || '';
         file = file.toLowerCase();
@@ -44,5 +54,6 @@ function decode(link, content) {
 }
 
 module.exports = {
-    decode: decode
+    decode: decode,
+    isContentHLS: isContentHLS
 };
