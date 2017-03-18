@@ -67,7 +67,7 @@ function getHeader(u, _options) {
                 connect = tls.connect;
                 port = parsed.port || 443;
             }
-            var client = connect({port:port, host:parsed.hostname, timeout:CONNECTION_TIMEOUT * 1000}, function() {
+            var client = connect({port:port, host:parsed.hostname, timeout:CONNECTION_TIMEOUT * 1000, rejectUnauthorized: false}, function() {
                 log.debug('Connected to ' + parsed.hostname + ':' + port);
                 client.setNoDelay(true);
                 var requestStr = 'GET ' + parsed.path + ' HTTP/1.1\r\n' +
