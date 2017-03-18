@@ -5,6 +5,8 @@ const tls = require('tls');
 const url = require('url');
 const log = require('./log.js');
 
+var CONNECTION_TIMEOUT = parseInt(process.env.CONNECTION_TIMEOUT) || 5;
+
 function decode(buffer) {
     var marker = Buffer.from([13, 10, 13, 10]);
     var found = buffer.indexOf(marker);
@@ -65,7 +67,7 @@ function getHeader(u, _options) {
                 connect = tls.connect;
                 port = parsed.port || 443;
             }
-            var client = connect(port, parsed.hostname, function() {
+            var client = connect({port:port, host:parsed.hostname, timeout:CONNECTION_TIMEOUT * 1000}, function() {
                 log.debug('Connected to ' + parsed.hostname + ':' + port);
                 client.setNoDelay(true);
                 var requestStr = 'GET ' + parsed.path + ' HTTP/1.1\r\n' +
@@ -75,6 +77,20 @@ function getHeader(u, _options) {
                     'Accept: */*\r\n\r\n';
                 client.write(requestStr, 'ascii');
                 log.trace('Sent to server:\n' + requestStr);
+            });
+            client.on('timeout', ()=>{
+                client.destroy();
+                if (!resolved) {
+                    if (!decoded) {
+                        decoded = decode(buffer);
+                    }
+                    if (decoded) {
+                        resolve(decoded);
+                    } else {
+                        reject('decoding did not work:' + buffer.toString('ascii', 0, 10));
+                    }
+                    resolved = true;
+                }
             });
             client.on('data', (data) => {
                 log.debug('connection data length:' + data.length);
