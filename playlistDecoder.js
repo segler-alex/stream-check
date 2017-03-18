@@ -27,6 +27,10 @@ function makeLinksAbsolute(link, content){
         return item !== undefined;
     }));
 
+    content = content.filter((item=>{
+        return item.file !== undefined;
+    }));
+
     for (var i=0;i<content.length;i++){
         var file = content[i].file || '';
         file = file.toLowerCase();
