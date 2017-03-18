@@ -98,7 +98,7 @@ function decodePlaylist(link, result) {
 
     log.trace(playlist);
 
-    if (isHls){
+    if (isHls) {
         return {
             url: link,
             hls: true,
@@ -106,7 +106,9 @@ function decodePlaylist(link, result) {
         };
     }
     return Promise.all(playlist.map((item) => {
-        return decode(item.file);
+        return decode(item.file).catch(() => {
+            log.warn('failed playlist item:' + item.file);
+        });
     })).then((items) => {
         var list = [];
         for (var i = 0; i < items.length; i++) {
@@ -116,6 +118,9 @@ function decodePlaylist(link, result) {
                 list.push(items[i]);
             }
         }
+        list = list.filter((item) => {
+            return item !== undefined;
+        });
         return list;
     });
 }
