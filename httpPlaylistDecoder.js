@@ -165,7 +165,7 @@ function decode(link) {
         headercheck: headercheck,
         contentsize: 10 * 1000
     }).then((result) => {
-        log.debug(result);
+        log.trace(result);
         if (result.headers.location) {
             // redirect
             log.info('redirect to:' + result.headers.location);

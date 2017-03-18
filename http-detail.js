@@ -74,7 +74,7 @@ function getHeader(u, _options) {
                     'Connection: close\r\n' +
                     'Accept: */*\r\n\r\n';
                 client.write(requestStr, 'ascii');
-                log.debug('Sent to server:\n' + requestStr);
+                log.trace('Sent to server:\n' + requestStr);
             });
             client.on('data', (data) => {
                 log.debug('connection data length:' + data.length);
@@ -106,6 +106,10 @@ function getHeader(u, _options) {
                     decoded.content = Buffer.concat([decoded.content, data]);
                     if (decoded.content.length >= contentsize) {
                         client.destroy();
+                        if (!resolved) {
+                            resolve(decoded);
+                            resolved = true;
+                        }
                     }
                 }
             });
