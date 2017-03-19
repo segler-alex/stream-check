@@ -35,13 +35,11 @@ router.post('/checkall', function(req, res) {
         return Promise.all(list);
     }).then((data) => {
         res.json({
-            ok: true,
             self: localIp,
             data: data
         });
     }).catch((err) => {
         res.status(400).send({
-            ok: false,
             url: url,
             result: result,
             err: err
@@ -55,14 +53,13 @@ router.post('/check', function(req, res) {
     if (!url) {
         log.debug('check empty url');
         res.status(400).json({
-            ok: false
+            msg: 'check empty url'
         });
     } else {
         log.debug('check url ok:' + url);
         httpPlaylistDecoder.decode(url).then((data) => {
             log.debug('check url finished:' + url);
             res.json({
-                ok: true,
                 self: localIp,
                 selfExternal: external.ip,
                 country: external.country,
@@ -70,8 +67,11 @@ router.post('/check', function(req, res) {
             });
         }).catch((err) => {
             log.error(err);
-            res.status(403).json({
-                ok: false
+            res.json({
+                self: localIp,
+                selfExternal: external.ip,
+                country: external.country,
+                streams: []
             });
         });
     }
