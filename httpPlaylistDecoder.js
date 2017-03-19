@@ -80,7 +80,7 @@ function getStreamType(contentType) {
 }
 
 function headercheck(result) {
-    var contentType = result.headers['content-type'];
+    var contentType = result.contentType;
     if (contentType) {
         return isContentTypePlaylist(contentType);
     } else {
@@ -170,7 +170,7 @@ function decode(link) {
         } else if (headercheck(result)) {
             return decodePlaylist(link, result);
         } else {
-            var contentType = result.headers['content-type'] || '';
+            var contentType = result.contentType || '';
             contentType = contentType.toLowerCase();
             var codec = getStreamType(contentType);
             if (codec) {

@@ -30,13 +30,28 @@ function decode(buffer) {
         log.debug('found marker at:' + found);
         log.debug('new buffer length:' + result.content.length);
         buffer.copy(result.content, 0, found + marker.length, buffer.length);
-        for (var i = 1; i < lines.length; i++) {
+        var i, index;
+        for (i = 1; i < lines.length; i++) {
             var line = lines[i];
-            var index = line.indexOf(':');
+            index = line.indexOf(':');
             if (index < 0) {
                 result.headers[line.toLowerCase()] = '';
             } else {
                 result.headers[line.substr(0, index).toLowerCase()] = line.substr(index + 1).trim();
+            }
+        }
+
+        var field = result.headers['content-type'];
+        if (field) {
+            var fieldItems = field.split(';');
+            result.contentType = fieldItems[0];
+            for (i = 1; i < fieldItems.length; i++) {
+                if (fieldItems[i].indexOf('charset') >= 0) {
+                    index = fieldItems[i].indexOf('=');
+                    if (index >= 0) {
+                        result.contentCharset = fieldItems[i].substr(index + 1);
+                    }
+                }
             }
         }
         return result;
@@ -67,7 +82,12 @@ function getHeader(u, _options) {
                 connect = tls.connect;
                 port = parsed.port || 443;
             }
-            var client = connect({port:port, host:parsed.hostname, timeout:CONNECTION_TIMEOUT * 1000, rejectUnauthorized: false}, function() {
+            var client = connect({
+                port: port,
+                host: parsed.hostname,
+                timeout: CONNECTION_TIMEOUT * 1000,
+                rejectUnauthorized: false
+            }, function() {
                 log.debug('Connected to ' + parsed.hostname + ':' + port);
                 client.setNoDelay(true);
                 var requestStr = 'GET ' + parsed.path + ' HTTP/1.1\r\n' +
@@ -78,7 +98,7 @@ function getHeader(u, _options) {
                 client.write(requestStr, 'ascii');
                 log.trace('Sent to server:\n' + requestStr);
             });
-            client.on('timeout', ()=>{
+            client.on('timeout', () => {
                 client.destroy();
                 if (!resolved) {
                     if (!decoded) {
@@ -100,7 +120,7 @@ function getHeader(u, _options) {
                     if (decoded) {
                         if (decoded.headers['content-length']) {
                             var value = parseInt(decoded.headers['content-length']);
-                            if (value < contentsize){
+                            if (value < contentsize) {
                                 contentsize = value;
                                 log.debug('Wait for bytes changed to:' + contentsize);
                             }
@@ -148,7 +168,7 @@ function getHeader(u, _options) {
             });
             client.on('error', (err) => {
                 log.error('err:' + err);
-                if (!resolved){
+                if (!resolved) {
                     reject(err);
                     resolved = true;
                 }
