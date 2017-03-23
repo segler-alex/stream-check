@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:6
+FROM node:6-alpine
 ADD . /root
 WORKDIR /root
 RUN npm install
